@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaveIt — Social Media Downloader Hub</title>
+<meta name="description" content="Download videos, reels, stories, shorts and photos from Instagram, YouTube, TikTok, Facebook, X, Pinterest, WhatsApp, Threads and more. Free, no ads, no tracking.">
+<meta property="og:title" content="SaveIt — Social Media Downloader Hub">
+<meta property="og:description" content="One hub to download from every platform. No ads, no tracking.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #6699FB;
+    --primary-active: #4a7de0;
+    --primary-focus: #89B4FF;
+    --ink: #1d1d1f;
+    --body: #3c3c3c;
+    --muted: #6b6b6b;
+    --muted-soft: #9a9a9a;
+    --hairline: #e6e6e6;
+    --hairline-strong: #cccccc;
+    --canvas: #ffffff;
+    --canvas-parchment: #f5f5f7;
+    --surface-card: #fafafa;
+    --surface-soft: #f7f7f7;
+    --on-primary: #ffffff;
+    --light: #B7D8FB;
+    --lightest: #F5F5FF;
+    --mid: #AECBF0;
+  }
+  [data-theme="dark"] {
+    --primary: #89B4FF;
+    --primary-active: #6699FB;
+    --ink: #f5f5f7;
+    --body: #d1d1d6;
+    --muted: #8e8e93;
+    --muted-soft: #636366;
+    --hairline: #2c2c2e;
+    --hairline-strong: #3a3a3c;
+    --canvas: #0e0e10;
+    --canvas-parchment: #161618;
+    --surface-card: #1c1c1e;
+    --surface-soft: #1a1a1c;
+    --lightest: #12121a;
+    --light: #1e2a3a;
+    --mid: #243045;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--canvas); color: var(--ink); line-height: 1.5; transition: background .25s, color .25s; }
+
+  /* Loading Screen */
+  #loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--canvas);
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px;
+    transition: opacity .4s ease;
+  }
+  #loader.hidden { opacity: 0; pointer-events: none; }
+  .loader-ring {
+    width: 52px; height: 52px;
+  }
+  .loader-ring circle {
+    fill: none; stroke: var(--primary); stroke-width: 3;
+    stroke-linecap: round; stroke-dasharray: 120; stroke-dashoffset: 120;
+    animation: ring-draw 1.2s ease forwards;
+    transform-origin: center; transform: rotate(-90deg);
+  }
+  @keyframes ring-draw { to { stroke-dashoffset: 0; } }
+  .loader-label { font-size: 14px; font-weight: 600; color: var(--primary); letter-spacing: 1.5px; text-transform: uppercase; }
+
+  /* Nav */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 64px; background: var(--canvas); border-bottom: 1px solid var(--hairline);
+    backdrop-filter: blur(20px) saturate(180%);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; gap: 16px;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo-icon { width: 32px; height: 32px; }
+  .nav-logo-text { font-size: 18px; font-weight: 700; color: var(--ink); }
+  .nav-logo-text span { color: var(--primary); }
+  .nav-actions { display: flex; align-items: center; gap: 8px; }
+  .theme-btn {
+    width: 40px; height: 40px; border-radius: 9999px; border: 1px solid var(--hairline-strong);
+    background: var(--surface-card); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink); transition: all .2s;
+  }
+  .theme-btn:hover { background: var(--hairline); }
+  .theme-btn svg { width: 18px; height: 18px; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--lightest) 0%, var(--light) 100%);
+    padding: 80px 24px 72px;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--primary); margin-bottom: 16px;
+  }
+  .hero-title {
+    font-size: clamp(34px, 6vw, 56px); font-weight: 700;
+    line-height: 1.07; letter-spacing: -0.28px;
+    color: var(--ink); margin-bottom: 20px;
+  }
+  .hero-title span { color: var(--primary); }
+  .hero-desc {
+    font-size: 18px; font-weight: 400; color: var(--muted);
+    max-width: 520px; margin: 0 auto 36px; line-height: 1.55;
+  }
+  .hero-input-row {
+    display: flex; gap: 10px; max-width: 580px; margin: 0 auto;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .hero-input {
+    flex: 1; min-width: 260px; padding: 14px 18px;
+    font-size: 15px; font-family: inherit;
+    border: 1.5px solid var(--hairline-strong); border-radius: 9999px;
+    background: var(--canvas); color: var(--ink);
+    outline: none; transition: border .2s, box-shadow .2s;
+  }
+  .hero-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(102,153,251,0.18); }
+  .btn-primary {
+    padding: 14px 28px; background: var(--primary); color: var(--on-primary);
+    border: none; border-radius: 9999px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: transform .15s, background .2s; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--primary-active); }
+  .btn-primary:active { transform: scale(0.95); }
+  .hero-note { font-size: 12px; color: var(--muted-soft); margin-top: 14px; }
+
+  /* Platform Grid */
+  .section {
+    padding: 72px 24px;
+    background: var(--canvas);
+  }
+  .section-dark {
+    background: #111827;
+    padding: 72px 24px;
+  }
+  .section-parchment {
+    background: var(--canvas-parchment);
+    padding: 72px 24px;
+  }
+  .section-header { text-align: center; margin-bottom: 48px; }
+  .section-eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; }
+  .section-title { font-size: clamp(24px, 4vw, 40px); font-weight: 700; color: var(--ink); line-height: 1.1; }
+  .section-dark .section-title { color: #f5f5f7; }
+  .section-dark .section-eyebrow { color: #89B4FF; }
+
+  .platform-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px; max-width: 1100px; margin: 0 auto;
+  }
+  .platform-card {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding: 28px 20px; border-radius: 18px;
+    background: var(--surface-card); border: 1px solid var(--hairline);
+    text-decoration: none; color: var(--ink);
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+    cursor: pointer;
+  }
+  .platform-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 8px 32px rgba(102,153,251,0.12); }
+  .platform-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0; flex-shrink: 0;
+  }
+  .platform-icon svg { width: 32px; height: 32px; }
+  .platform-name { font-size: 17px; font-weight: 700; text-align: center; }
+  .platform-types { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
+  .platform-badge {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 9999px;
+    background: var(--lightest); color: var(--primary); border: 1px solid var(--light);
+  }
+
+  /* Dark cards */
+  .section-dark .platform-card {
+    background: #1c1c1e; border-color: #2c2c2e; color: #f5f5f7;
+  }
+  .section-dark .platform-types { color: #8e8e93; }
+  .section-dark .platform-badge { background: #1e2a3a; color: #89B4FF; border-color: #243045; }
+  .section-dark .platform-card:hover { border-color: #89B4FF; box-shadow: 0 8px 32px rgba(137,180,255,0.12); }
+
+  /* Features */
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px; max-width: 1000px; margin: 0 auto;
+  }
+  .feature-card {
+    padding: 28px; border-radius: 18px;
+    background: var(--surface-card); border: 1px solid var(--hairline);
+  }
+  .feature-icon { width: 44px; height: 44px; margin-bottom: 16px; color: var(--primary); }
+  .feature-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--ink); }
+  .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+  /* API Config */
+  .api-config-section {
+    background: var(--canvas-parchment); padding: 48px 24px; text-align: center;
+  }
+  .api-config-box {
+    max-width: 560px; margin: 0 auto; background: var(--canvas);
+    border: 1px solid var(--hairline); border-radius: 18px; padding: 32px;
+  }
+  .api-config-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--ink); }
+  .api-config-desc { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  .input-row { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+  .text-input {
+    flex: 1; min-width: 220px; padding: 12px 16px;
+    border: 1.5px solid var(--hairline-strong); border-radius: 8px;
+    font-size: 14px; font-family: inherit; background: var(--canvas); color: var(--ink); outline: none;
+    transition: border .2s;
+  }
+  .text-input:focus { border-color: var(--primary); }
+  .btn-secondary {
+    padding: 12px 20px; background: var(--canvas); color: var(--ink);
+    border: 1.5px solid var(--hairline-strong); border-radius: 9999px;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; white-space: nowrap;
+  }
+  .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+  .saved-note { font-size: 12px; color: #22c55e; margin-top: 10px; display: none; }
+
+  /* Footer */
+  footer {
+    background: var(--canvas-parchment); border-top: 1px solid var(--hairline);
+    padding: 48px 24px 24px;
+  }
+  .footer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 32px; max-width: 900px; margin: 0 auto 32px; }
+  .footer-col-title { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink); margin-bottom: 12px; }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .footer-links a { font-size: 14px; color: var(--muted); text-decoration: none; transition: color .15s; }
+  .footer-links a:hover { color: var(--primary); }
+  .footer-copy { text-align: center; font-size: 12px; color: var(--muted-soft); padding-top: 24px; border-top: 1px solid var(--hairline); }
+
+  /* Quick-download modal */
+  .overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--canvas); border-radius: 18px; padding: 32px;
+    max-width: 500px; width: 100%; border: 1px solid var(--hairline);
+    position: relative;
+  }
+  .modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 9999px; border: none; background: var(--surface-soft); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 18px; }
+  .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .modal-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  .modal-result { margin-top: 16px; padding: 14px; border-radius: 11px; background: var(--canvas-parchment); border: 1px solid var(--hairline); display: none; }
+  .modal-result.show { display: block; }
+  .modal-result a { color: var(--primary); font-weight: 600; word-break: break-all; }
+  .status-text { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .error-text { font-size: 13px; color: #dc2626; margin-top: 8px; }
+
+  @media (max-width: 640px) {
+    .hero { padding: 56px 16px 48px; }
+    .platform-grid { grid-template-columns: repeat(2, 1fr); }
+    .section { padding: 48px 16px; }
+    .section-dark, .section-parchment { padding: 48px 16px; }
+  }
+  @media (max-width: 419px) {
+    .nav-logo-text { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loader">
+  <svg class="loader-ring" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="26" cy="26" r="22"/>
+  </svg>
+  <span class="loader-label">SaveIt</span>
+</div>
+
+<!-- Quick-Download Overlay -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+    <div class="modal-title" id="modalTitle">Paste your link</div>
+    <div class="modal-subtitle" id="modalSubtitle">Powered by Cobalt · No ads, no tracking</div>
+    <div class="input-row">
+      <input type="url" class="text-input" id="modalInput" placeholder="https://..." style="border-radius:8px">
+      <button class="btn-primary" id="modalDownload">Download</button>
+    </div>
+    <div class="modal-result" id="modalResult">
+      <div id="resultContent"></div>
+      <div class="status-text" id="statusText"></div>
+    </div>
+    <div class="error-text" id="errorText"></div>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <svg class="nav-logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="8" fill="#6699FB"/>
+      <path d="M16 6L22 12H18V20H14V12H10L16 6Z" fill="white"/>
+      <rect x="9" y="22" width="14" height="3" rx="1.5" fill="white"/>
+    </svg>
+    <span class="nav-logo-text">Save<span>It</span></span>
+  </a>
+  <div class="nav-actions">
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle dark mode">
+      <svg id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="moonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-eyebrow">Free · Open Source · No Ads</div>
+  <h1 class="hero-title">Download from <span>any</span> platform</h1>
+  <p class="hero-desc">Paste any link from Instagram, YouTube, TikTok, X and more — get your video, reel, story or photo instantly.</p>
+  <div class="hero-input-row">
+    <input type="url" class="hero-input" id="heroInput" placeholder="Paste a link from any platform…">
+    <button class="btn-primary" id="heroBtn">Download</button>
+  </div>
+  <p class="hero-note">Powered by Cobalt API &nbsp;·&nbsp; Works with 20+ platforms &nbsp;·&nbsp; No watermarks</p>
+</section>
+
+<!-- Platforms Section 1: Social -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-eyebrow">Social Platforms</div>
+    <h2 class="section-title">Pick your platform</h2>
+  </div>
+  <div class="platform-grid">
+
+    <a class="platform-card" href="instagram.html">
+      <div class="platform-icon" style="background:#ffeef8">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="ig" x1="0" y1="24" x2="24" y2="0"><stop offset="0%" stop-color="#f9ce34"/><stop offset="33%" stop-color="#ee2a7b"/><stop offset="100%" stop-color="#6228d7"/></linearGradient></defs>
+          <rect x="2" y="2" width="20" height="20" rx="5.5" stroke="url(#ig)" stroke-width="2"/>
+          <circle cx="12" cy="12" r="4" stroke="url(#ig)" stroke-width="2"/>
+          <circle cx="17.5" cy="6.5" r="1" fill="#ee2a7b"/>
+        </svg>
+      </div>
+      <div class="platform-name">Instagram</div>
+      <div class="platform-types">Reels · Stories · Posts · DP</div>
+      <span class="platform-badge">HOT</span>
+    </a>
+
+    <a class="platform-card" href="tiktok.html">
+      <div class="platform-icon" style="background:#f0fffe">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 3H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" fill="#010101"/>
+          <path d="M12.5 7.5v5.7a2.2 2.2 0 11-2.2-2.2h.4V9.2h-.4a4 4 0 100 8 4 4 0 004-4V9.6a5.7 5.7 0 003.3 1v-1.8a3.8 3.8 0 01-3.3-1.8l-.8.5z" fill="#69C9D0"/>
+          <path d="M12.5 7.5l.8-.5a3.8 3.8 0 003.3 1.8v1.8a5.7 5.7 0 01-3.3-1v3.6a4 4 0 11-4-4h.4v1.8h-.4a2.2 2.2 0 102.2 2.2V7.5h1z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">TikTok</div>
+      <div class="platform-types">Videos · Audio · No watermark</div>
+      <span class="platform-badge">POPULAR</span>
+    </a>
+
+    <a class="platform-card" href="youtube.html">
+      <div class="platform-icon" style="background:#fff0f0">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23 7s-.3-1.9-1.1-2.7c-1.1-1.1-2.3-1.1-2.8-1.2C16.4 3 12 3 12 3s-4.4 0-7.1.1C4.4 3.2 3.2 3.2 2.1 4.3 1.3 5.1 1 7 1 7S.7 9.2.7 11.5v2.1C.7 16 1 18.1 1 18.1s.3 1.9 1.1 2.6c1.1 1.1 2.5 1.1 3.1 1.1C7.2 22 12 22 12 22s4.4 0 7.1-.2c.6-.1 1.7-.1 2.8-1.2.8-.7 1.1-2.6 1.1-2.6S23.3 16 23.3 13.5v-2c0-2.2-.3-4.5-.3-4.5z" fill="#FF0000"/>
+          <path d="M9.7 15.5V8.5l6.6 3.5-6.6 3.5z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">YouTube</div>
+      <div class="platform-types">Videos · Shorts · Audio</div>
+      <span class="platform-badge">NEW</span>
+    </a>
+
+    <a class="platform-card" href="x.html">
+      <div class="platform-icon" style="background:#f5f5f5">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#000"/>
+          <path d="M13.8 10.6L19.2 4h-1.3l-4.7 5.4L9.2 4H4.8l5.7 8.2L4.8 20h1.3l4.9-5.7 3.9 5.7h4.4l-5.5-9.4zm-1.8 2l-.6-.8-4.6-6.5h2l3.7 5.3.6.8 4.8 6.8h-2l-3.9-5.6z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">X / Twitter</div>
+      <div class="platform-types">Videos · Spaces · GIFs</div>
+      <span class="platform-badge">X</span>
+    </a>
+
+    <a class="platform-card" href="facebook.html">
+      <div class="platform-icon" style="background:#f0f4ff">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#1877F2"/>
+          <path d="M16.2 8H14c-.3 0-.5.2-.5.5V10h2.7l-.4 2.5H13.5V19h-2.5v-6.5H9V10h2V8.3C11 6.4 12.1 5 14.2 5H16.2v3z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">Facebook</div>
+      <div class="platform-types">Videos · Reels · Stories</div>
+      <span class="platform-badge">FB</span>
+    </a>
+
+    <a class="platform-card" href="threads.html">
+      <div class="platform-icon" style="background:#f0f0f0">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#000"/>
+          <path d="M16.3 11.3c-.1-.07-.3-.13-.4-.19a7.3 7.3 0 00-3.1-.65c-3.1 0-5 1.8-5 4.5 0 2.5 1.8 4.1 4.6 4.1 1.9 0 3.3-.7 4.1-2.1.6-1 .8-2.2.8-3.5 0-.07 0-.13-.01-.19zm-1.8 4.3c-.5.8-1.3 1.2-2.4 1.2-1.5 0-2.4-.8-2.4-2.1 0-1.4 1-2.3 2.7-2.3.4 0 .8.04 1.2.1.2.04.4.1.5.14.1.9-.2 2.2-1.6 3zm.2-5.6a6 6 0 00-2.8-.6C8.1 9.4 6 11.3 6 14c0 2.8 1.9 4.5 5 4.5 2.1 0 3.7-.8 4.6-2.3.7-1.1.9-2.4.9-3.8v-.05a9.2 9.2 0 00-1.8-.37z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">Threads</div>
+      <div class="platform-types">Videos · Photos</div>
+      <span class="platform-badge">META</span>
+    </a>
+
+    <a class="platform-card" href="pinterest.html">
+      <div class="platform-icon" style="background:#fff0f0">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#E60023"/>
+          <path d="M12 4C7.6 4 4 7.6 4 12c0 3.4 2.1 6.3 5 7.6 0-.6 0-1.2.1-1.8l1-4.3s-.2-.5-.2-1.3c0-1.2.7-2.1 1.6-2.1.8 0 1.1.6 1.1 1.3 0 .8-.5 2-.7 3.1-.2.9.4 1.7 1.3 1.7 1.6 0 2.7-2.1 2.7-4.6 0-1.9-1.3-3.3-3.3-3.3-2.3 0-3.6 1.7-3.6 3.4 0 .7.3 1.4.6 1.8.1.1.1.2 0 .3l-.3 1.1c0 .1-.1.2-.3.1-.9-.4-1.5-1.7-1.5-2.8 0-2.3 1.7-4.4 4.9-4.4 2.6 0 4.6 1.8 4.6 4.3 0 2.6-1.6 4.7-3.9 4.7-.7 0-1.4-.4-1.7-.8l-.5 1.7c-.2.7-.6 1.4-1 2 .7.2 1.5.3 2.2.3 4.4 0 8-3.6 8-8s-3.6-8-8-8z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">Pinterest</div>
+      <div class="platform-types">Images · Videos · Pins</div>
+      <span class="platform-badge">PINS</span>
+    </a>
+
+    <a class="platform-card" href="whatsapp.html">
+      <div class="platform-icon" style="background:#f0fff5">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#25D366"/>
+          <path d="M12 4.5a7.5 7.5 0 00-6.5 11.2L4 20l4.4-1.5A7.5 7.5 0 1012 4.5zm0 13.5a6 6 0 01-3.1-.9l-.2-.1-2.6.9.9-2.5-.2-.2A6 6 0 1118 12a6 6 0 01-6 6zm3.2-4.5c-.2-.1-.9-.5-1.1-.5-.1 0-.2 0-.3.2l-.5.6c-.1.1-.2.1-.3.1-.2-.1-.7-.3-1.3-.8-.5-.5-.8-.9-.9-1.1 0-.1 0-.2.1-.3l.2-.3.1-.3v-.3l-.5-1.2c-.1-.3-.2-.3-.3-.3h-.3c-.1 0-.3.1-.4.2-.2.1-.5.5-.5 1.2s.5 1.4.6 1.5c.1.1 1 1.6 2.4 2.2.3.1.6.2.8.3.3.1.6.1.8 0 .3 0 .8-.3 1-.7.1-.3.1-.6 0-.7z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">WhatsApp</div>
+      <div class="platform-types">Status · Videos · DP</div>
+      <span class="platform-badge">WA</span>
+    </a>
+
+  </div>
+</section>
+
+<!-- More Platforms - Dark -->
+<section class="section-dark">
+  <div class="section-header">
+    <div class="section-eyebrow">More Platforms</div>
+    <h2 class="section-title">Even more sources</h2>
+  </div>
+  <div class="platform-grid">
+
+    <a class="platform-card" href="reddit.html">
+      <div class="platform-icon" style="background:#1a1a1a">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#FF4500"/>
+          <path d="M20 12c0-.9-.7-1.6-1.6-1.6-.4 0-.8.2-1.1.4C15.9 9.7 14 9 12 9l.9-4.2 2.9.6c0 .7.5 1.2 1.2 1.2.7 0 1.2-.5 1.2-1.2S17.7 4 17 4c-.5 0-.9.3-1.1.7L12.7 4l-1 4.9H12c-2 0-3.8.7-5.1 1.9C6.6 10.6 6.2 10.4 5.8 10.4 4.8 10.4 4 11.1 4 12c0 .6.3 1.1.8 1.4 0 .2-.1.4-.1.6 0 2.5 2.9 4.5 6.5 4.5s6.5-2 6.5-4.5c0-.2 0-.4-.1-.6.4-.3.4-.8.4-1.4zM8 13c0-.5.5-1 1-1s1 .5 1 1-.5 1-1 1-1-.5-1-1zm5.8 2.6c-.5.5-1.3.7-2.3.7s-1.8-.2-2.3-.7c-.1-.1-.1-.3 0-.4.1-.1.3-.1.4 0 .4.4 1 .6 1.9.6.9 0 1.5-.2 1.9-.6.1-.1.3-.1.4 0 0 .1 0 .3 0 .4zm-.3-1.6c-.5 0-1-.5-1-1s.5-1 1-1 1 .5 1 1-.5 1-1 1z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">Reddit</div>
+      <div class="platform-types">Videos · GIFs · Images</div>
+      <span class="platform-badge">REDDIT</span>
+    </a>
+
+    <a class="platform-card" href="vimeo.html">
+      <div class="platform-icon" style="background:#0d1a2a">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#1AB7EA"/>
+          <path d="M19.8 8.1c-.1 1.7-1.3 4.1-3.6 7.1-2.4 3.1-4.4 4.7-6 4.7-1 0-1.9-1-2.6-2.9L6.3 11C5.7 9 5 8 4.3 8c-.2 0-.7.3-1.7.9L2 7.7c1-.9 2-1.9 2.7-2.6C5.9 4 7 3.4 7.8 3.4c2 0 3.2 1.2 3.5 3.6.5 2.8.8 4.5 1 5.2.5 2.4 1.1 3.5 1.8 3.5.5 0 1.2-.8 2.1-2.4.9-1.6 1.4-2.8 1.4-3.6 0-1.6-.6-2.4-1.8-2.4-.6 0-1.3.1-2 .4 1.3-4.3 3.8-6.4 7.5-6.1.1.1.1.8-.5 4z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">Vimeo</div>
+      <div class="platform-types">Videos · HD Quality</div>
+      <span class="platform-badge">VIDEO</span>
+    </a>
+
+    <a class="platform-card" href="soundcloud.html">
+      <div class="platform-icon" style="background:#1a0a00">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="5" fill="#FF5500"/>
+          <path d="M4.5 14.5C3.7 14.5 3 13.8 3 13c0-.7.5-1.3 1.2-1.4-.1-.2-.2-.5-.2-.8 0-1.4 1.1-2.5 2.5-2.5.4 0 .7.1 1 .2.5-1.3 1.8-2.2 3.3-2.2 1.9 0 3.5 1.5 3.5 3.4v.1c.3-.1.6-.2.9-.2.9 0 1.6.7 1.6 1.6 0 .9-.7 1.6-1.6 1.6H4.5z" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">SoundCloud</div>
+      <div class="platform-types">Audio · Tracks · Playlists</div>
+      <span class="platform-badge">AUDIO</span>
+    </a>
+
+    <a class="platform-card" href="other.html">
+      <div class="platform-icon" style="background:#1a1a2e">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#89B4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        </svg>
+      </div>
+      <div class="platform-name">Other</div>
+      <div class="platform-types">Twitch · Dailymotion · Bilibili +more</div>
+      <span class="platform-badge">20+</span>
+    </a>
+
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section-parchment">
+  <div class="section-header">
+    <div class="section-eyebrow">Why SaveIt</div>
+    <h2 class="section-title">Built different</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <div class="feature-title">No ads, no trackers</div>
+      <div class="feature-desc">Powered by the open-source Cobalt engine. Zero tracking, no analytics, no cookies you didn't ask for.</div>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="13 2 13 9 20 9"/><polygon points="22 12 12 2 2 12 2 22 22 22 22 12"/>
+      </svg>
+      <div class="feature-title">No watermarks</div>
+      <div class="feature-desc">TikTok videos, Instagram reels — downloaded clean, without platform watermarks or branding.</div>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+      <div class="feature-title">Instant downloads</div>
+      <div class="feature-desc">No account needed. Paste the link, click download, get the file. That's the whole flow.</div>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      <div class="feature-title">Multiple formats</div>
+      <div class="feature-desc">Video, audio-only, original resolution — choose what you actually need per platform.</div>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+      </svg>
+      <div class="feature-title">Self-hostable</div>
+      <div class="feature-desc">Point SaveIt at your own Cobalt instance on Railway, Docker or any server for unlimited personal use.</div>
+    </div>
+    <div class="feature-card">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+      </svg>
+      <div class="feature-title">Open source</div>
+      <div class="feature-desc">Built on Cobalt (github.com/imputnet/cobalt) — 41k stars, AGPL-3.0 licensed, community-maintained.</div>
+    </div>
+  </div>
+</section>
+
+<!-- API Config -->
+<div class="api-config-section">
+  <div class="api-config-box">
+    <div class="api-config-title">Cobalt API Instance</div>
+    <div class="api-config-desc">The public api.cobalt.tools requires auth. Paste your own self-hosted Cobalt instance URL below and all pages will use it.</div>
+    <div class="input-row">
+      <input type="url" class="text-input" id="apiUrlInput" placeholder="https://your-cobalt-instance.railway.app">
+      <button class="btn-secondary" id="saveApiUrl">Save</button>
+    </div>
+    <div class="saved-note" id="savedNote">Saved! All platform pages will use this instance.</div>
+    <p style="font-size:12px;color:var(--muted-soft);margin-top:12px">Self-host Cobalt free on Railway · <a href="https://github.com/imputnet/cobalt" target="_blank" rel="noopener" style="color:var(--primary)">View on GitHub</a></p>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-col-title">Thunder</div>
+      <ul class="footer-links">
+        <li><a href="https://commercesehoga.github.io/">ThunderStudy</a></li>
+        <li><a href="https://commercesehoga.github.io/dashboard">CBT Mock Platform</a></li>
+        <li><a href="https://thunderstudy.github.io">Free Study Material</a></li>
+        <li><a href="https://commercesehoga.github.io/help">Help / Donate</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">wondermayank</div>
+      <ul class="footer-links">
+        <li><a href="https://wondermayank.indevs.in">Portfolio</a></li>
+        <li><a href="https://wondermayank.github.io/">wondermayank.github.io</a></li>
+        <li><a href="https://wondermayank.github.io/mail">Mail</a></li>
+        <li><a href="https://wondermayank.github.io/contact">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Legal</div>
+      <ul class="footer-links">
+        <li><a href="https://wondermayank.github.io/terms">Terms</a></li>
+        <li><a href="https://wondermayank.github.io/privacy">Privacy</a></li>
+        <li><a href="https://wondermayank.github.io/disclaimer">Disclaimer</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-copy">© 2025 Thunder · by wondermayank · Powered by <a href="https://github.com/imputnet/cobalt" target="_blank" rel="noopener" style="color:var(--primary)">Cobalt</a></div>
+</footer>
+
+<script>
+  // Theme
+  const html = document.documentElement;
+  const stored = localStorage.getItem('saveit-theme');
+  if (stored) html.setAttribute('data-theme', stored);
+  const sun = document.getElementById('sunIcon'), moon = document.getElementById('moonIcon');
+  function applyThemeIcons() {
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    sun.style.display = isDark ? 'block' : 'none';
+    moon.style.display = isDark ? 'none' : 'block';
+  }
+  applyThemeIcons();
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('saveit-theme', next);
+    applyThemeIcons();
+  });
+
+  // Loader
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => document.getElementById('loader').classList.add('hidden'), 800);
+  });
+
+  // API config
+  const apiInput = document.getElementById('apiUrlInput');
+  const savedNote = document.getElementById('savedNote');
+  apiInput.value = localStorage.getItem('cobalt-api-url') || '';
+  document.getElementById('saveApiUrl').addEventListener('click', () => {
+    localStorage.setItem('cobalt-api-url', apiInput.value.trim());
+    savedNote.style.display = 'block';
+    setTimeout(() => savedNote.style.display = 'none', 3000);
+  });
+
+  // Quick download modal
+  const overlay = document.getElementById('overlay');
+  const modalInput = document.getElementById('modalInput');
+  const modalDownload = document.getElementById('modalDownload');
+  const modalResult = document.getElementById('modalResult');
+  const resultContent = document.getElementById('resultContent');
+  const statusText = document.getElementById('statusText');
+  const errorText = document.getElementById('errorText');
+
+  async function runDownload(url, btn) {
+    const apiBase = (localStorage.getItem('cobalt-api-url') || '').replace(/\/$/, '');
+    if (!apiBase) {
+      errorText.textContent = 'Please set your Cobalt API instance URL in the config box below first.';
+      return;
+    }
+    if (!url) { errorText.textContent = 'Please paste a link.'; return; }
+    btn.textContent = 'Loading…'; btn.disabled = true;
+    errorText.textContent = '';
+    modalResult.classList.remove('show');
+    try {
+      const res = await fetch(`${apiBase}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      if (data.status === 'redirect' || data.status === 'stream' || data.url) {
+        const dlUrl = data.url;
+        resultContent.innerHTML = `<a href="${dlUrl}" target="_blank" rel="noopener" download>Click to download file</a>`;
+        statusText.textContent = `Type: ${data.status || 'stream'} · Format: ${data.filename || 'auto'}`;
+        modalResult.classList.add('show');
+      } else if (data.status === 'picker') {
+        const links = (data.picker || []).map((p, i) => `<a href="${p.url}" target="_blank" rel="noopener" download>Item ${i+1}</a>`).join(' · ');
+        resultContent.innerHTML = links || 'Multiple items found — check picker response.';
+        modalResult.classList.add('show');
+      } else if (data.status === 'error' || data.error) {
+        errorText.textContent = data.error?.code || data.text || 'Download failed. Check the URL or try another instance.';
+      } else {
+        errorText.textContent = 'Unexpected response from Cobalt. Try a different instance.';
+      }
+    } catch (e) {
+      errorText.textContent = 'Network error — is your Cobalt instance running? ' + e.message;
+    }
+    btn.textContent = 'Download'; btn.disabled = false;
+  }
+
+  // Hero download
+  document.getElementById('heroBtn').addEventListener('click', () => {
+    const url = document.getElementById('heroInput').value.trim();
+    modalInput.value = url;
+    overlay.classList.add('open');
+  });
+  document.getElementById('heroInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('heroBtn').click();
+  });
+
+  // Modal
+  document.getElementById('modalClose').addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  modalDownload.addEventListener('click', () => runDownload(modalInput.value.trim(), modalDownload));
+  modalInput.addEventListener('keydown', e => { if (e.key === 'Enter') modalDownload.click(); });
+</script>
+</body>
+</html>
